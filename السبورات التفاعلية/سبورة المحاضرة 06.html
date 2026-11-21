@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>سبورة المحاضرة 6 — نموذج الصندوق Box Model | آدم تامر</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--p:#6C4CF5;--t:#00C2A8;--d:#1E1B4B;--soft:#F3F0FF;--amber:#F59E0B;--bg:#FBFAFF}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:Cairo,Tahoma,sans-serif;background:var(--bg);color:var(--d);
+ background-image:radial-gradient(#d9d3ff 1px,transparent 1px);background-size:26px 26px}
+header{position:fixed;top:0;inset-inline:0;height:58px;display:flex;align-items:center;gap:14px;padding:0 20px;
+ background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border-bottom:1px solid #ece8ff;z-index:30}
+header svg{width:38px;height:38px}
+header .ttl{font-weight:700;font-size:17px}
+header .ttl small{color:var(--p);font-weight:900;margin-inline-end:6px}
+header .sp{flex:1}
+.dots{display:none;gap:6px}
+.dots i{width:9px;height:9px;border-radius:50%;background:#ddd6fe;cursor:pointer;transition:.3s}
+.dots i.on{background:var(--p);width:26px;border-radius:6px}
+.count{font-family:'Fira Code',monospace;color:#6b7280;font-size:14px;min-width:54px;text-align:center}
+#stage{position:fixed;top:58px;bottom:0;inset-inline:0;overflow:hidden}
+.slide{position:absolute;inset:0;padding:34px 6vw 110px;display:none;overflow:auto;animation:in .45s ease}
+.slide.on{display:block}
+@keyframes in{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+h1.big{font-size:clamp(34px,5vw,64px);font-weight:900;line-height:1.3}
+h2.st{font-size:clamp(26px,3vw,40px);font-weight:900;margin-bottom:22px;display:flex;align-items:center;gap:12px}
+h2.st .num{background:var(--p);color:#fff;border-radius:14px;padding:2px 14px;font-size:.7em}
+.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:100%}
+.cover svg{width:170px;height:170px;filter:drop-shadow(0 18px 30px rgba(108,76,245,.35));animation:float 4s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-10px)}}
+.tag{display:inline-block;background:var(--soft);color:var(--p);font-weight:700;border-radius:30px;padding:6px 20px;margin:10px 4px}
+.en{font-family:'Fira Code',monospace;color:var(--t);font-size:22px;margin:6px 0 18px}
+.by{margin-top:26px;color:#6b7280}.by b{color:var(--p);font-size:24px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.card{background:#fff;border:1px solid #ece8ff;border-radius:20px;padding:20px 22px;box-shadow:0 6px 20px rgba(30,27,75,.06);font-size:clamp(17px,1.6vw,22px);line-height:1.8}
+.card.obj{display:flex;gap:14px;align-items:flex-start}
+.card.obj b{background:linear-gradient(135deg,var(--p),var(--t));color:#fff;min-width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:20px}
+.pts{display:flex;flex-direction:column;gap:12px}
+.pt{background:#fff;border-inline-start:6px solid var(--p);border-radius:14px;padding:12px 18px;font-size:clamp(17px,1.55vw,22px);line-height:1.8;box-shadow:0 4px 14px rgba(30,27,75,.05)}
+.pt:nth-child(2){border-color:var(--t)}.pt:nth-child(3){border-color:var(--amber)}.pt:nth-child(4){border-color:#EF476F}
+.step{opacity:0;transform:translateX(-20px);transition:.4s}
+.step.shown{opacity:1;transform:none}
+code,.mono{font-family:'Fira Code',Consolas,'Courier New',monospace;direction:ltr;unicode-bidi:embed;background:#efeaff;color:#5b3be0;padding:0 6px;border-radius:6px;font-size:.92em}
+.split{display:grid;grid-template-columns:1fr 1.1fr;gap:22px;align-items:start}
+@media(max-width:1000px){.split{grid-template-columns:1fr}}
+.ide{background:#1E1E2E;border-radius:18px;overflow:hidden;box-shadow:0 14px 34px rgba(30,27,75,.25)}
+.ide .bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#151522;color:#a5a5c8;font-size:13px;direction:ltr}
+.ide .bar i{width:11px;height:11px;border-radius:50%;background:#ff5f57}.ide .bar i:nth-child(2){background:#febc2e}.ide .bar i:nth-child(3){background:#28c840}
+.ide .bar span{flex:1;font-family:'Fira Code',monospace}
+.ide textarea{width:100%;min-height:230px;background:transparent;color:#e6e6f0;border:0;outline:0;resize:vertical;padding:16px;
+ font-family:'Fira Code',Consolas,'Courier New',monospace;font-size:15.5px;line-height:1.65;direction:ltr;text-align:left;tab-size:2;white-space:pre}
+.run{background:var(--t);color:#fff;border:0;border-radius:10px;padding:6px 16px;font-family:Cairo;font-weight:700;cursor:pointer;font-size:14px}
+.run:hover{filter:brightness(1.1)}
+.prev{background:#fff;border-radius:18px;border:2px dashed #ddd6fe;overflow:hidden;margin-top:14px}
+.prev .lbl{background:var(--soft);color:var(--p);padding:6px 14px;font-weight:700;font-size:14px}
+.prev iframe{width:100%;height:240px;border:0;background:#fff}
+.note{margin-top:16px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:14px;padding:12px 16px;font-size:18px}
+.note::before{content:"💡 "}
+.analogy{max-width:950px;margin:40px auto;text-align:center}
+.analogy .emo{font-size:90px;animation:float 3s ease-in-out infinite}
+.analogy p{font-size:clamp(20px,2.2vw,30px);line-height:1.9;background:#fff;border-radius:26px;padding:30px;border:2px solid #c7f9ee;box-shadow:0 10px 30px rgba(0,194,168,.12)}
+.ex{display:flex;gap:16px;align-items:center}
+.ex b{font-size:30px;color:var(--t);font-family:'Fira Code'}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;margin-bottom:28px}
+.sum .card{text-align:center;font-weight:700;border-top:6px solid var(--p)}
+.play{display:block;max-width:560px;margin:10px auto;text-align:center;background:linear-gradient(135deg,var(--p),var(--t));color:#fff;border-radius:24px;padding:24px;font-size:26px;font-weight:900;box-shadow:0 14px 34px rgba(108,76,245,.35)}
+/* playgrounds */
+.pg{display:grid;grid-template-columns:320px 1fr;gap:22px}
+@media(max-width:1000px){.pg{grid-template-columns:1fr}}
+.ctrl{background:#fff;border-radius:18px;padding:18px;border:1px solid #ece8ff}
+.ctrl label{display:block;font-weight:700;margin:10px 0 4px;font-size:15px}
+.ctrl input[type=range]{width:100%;accent-color:var(--p)}
+.ctrl select{width:100%;font-family:'Fira Code';padding:6px;border-radius:8px;border:1px solid #ddd6fe;direction:ltr}
+.ctrl .out{font-family:'Fira Code';direction:ltr;text-align:left;background:#1E1E2E;color:#a7f3d0;border-radius:10px;padding:10px;font-size:13px;margin-top:12px;white-space:pre}
+.view{background:#fff;border-radius:18px;border:2px dashed #ddd6fe;min-height:360px;display:flex;align-items:center;justify-content:center;padding:16px;direction:ltr}
+.bm-m{background:#FDE68A;padding:0;transition:.2s;position:relative}
+.bm-b{border:0 solid #F97316;transition:.2s}
+.bm-p{background:#A7F3D0;transition:.2s}
+.bm-c{background:#93C5FD;width:180px;height:70px;display:grid;place-items:center;font-weight:700}
+.lgnd{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:14px}
+.lgnd span{padding:3px 10px;border-radius:8px}
+.fx{width:100%;height:330px;background:#f5f3ff;border-radius:12px;gap:10px;padding:10px;transition:.3s}
+.fx div{background:var(--p);color:#fff;border-radius:10px;padding:14px 20px;font-weight:900;font-size:22px;transition:.3s}
+.fx div:nth-child(2){background:var(--t)}.fx div:nth-child(3){background:var(--amber)}.fx div:nth-child(4){background:#EF476F}
+.flow{display:flex;align-items:center;justify-content:space-around;gap:20px;min-height:340px;position:relative;direction:rtl}
+.node{background:#fff;border-radius:24px;padding:22px;text-align:center;width:210px;border:2px solid #ece8ff;box-shadow:0 8px 24px rgba(30,27,75,.08)}
+.node .ic{font-size:60px}
+.node b{display:block;font-size:20px}
+.wire{flex:1;height:6px;background:repeating-linear-gradient(90deg,#ddd6fe 0 14px,transparent 14px 24px);position:relative;border-radius:4px}
+.pkt{position:absolute;top:-24px;font-size:38px;transition:all 1.4s ease-in-out;right:0}
+.flowmsg{text-align:center;font-size:22px;font-weight:700;color:var(--p);min-height:40px;margin-top:16px}
+.btnp{background:var(--p);color:#fff;border:0;border-radius:12px;padding:10px 26px;font-family:Cairo;font-weight:700;font-size:18px;cursor:pointer;margin:8px 4px}
+/* drawing */
+#ink{position:fixed;top:58px;left:0;z-index:20;touch-action:none}
+body.mode-pointer #ink{pointer-events:none}
+#blank{position:fixed;top:58px;inset-inline:0;bottom:0;background:#fff;z-index:15;display:none;background-image:linear-gradient(#f0eeff 1px,transparent 1px),linear-gradient(90deg,#f0eeff 1px,transparent 1px);background-size:40px 40px}
+body.board #blank{display:block}
+.tools{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:4px;
+ background:rgba(30,27,75,.94);padding:8px 10px;border-radius:20px;box-shadow:0 14px 34px rgba(0,0,0,.3);direction:rtl}
+.tools button{background:transparent;border:0;color:#fff;width:42px;height:42px;border-radius:12px;font-size:19px;cursor:pointer;display:grid;place-items:center;transition:.15s}
+.tools button:hover{background:rgba(255,255,255,.12)}
+.tools button.on{background:var(--p)}
+.tools .sep{width:1px;height:28px;background:rgba(255,255,255,.2);margin:0 4px}
+.sw{width:22px!important;height:22px!important;border-radius:50%!important;border:2px solid transparent!important;margin:0 2px}
+.sw.on{border-color:#fff!important;transform:scale(1.2)}
+.sz{font-family:'Fira Code'!important;font-size:12px!important;width:30px!important}
+.wm{position:fixed;bottom:90px;left:24px;opacity:.07;z-index:0;width:110px;pointer-events:none}
+#stage{z-index:2}
+
+.say{display:flex;gap:12px;align-items:flex-start;margin-top:18px;background:linear-gradient(135deg,#fff7ed,#fffbeb);border:2px solid #fed7aa;border-radius:20px;padding:14px 18px;font-size:clamp(18px,1.7vw,23px);line-height:1.8;font-weight:600;color:#7c2d12;text-align:start}
+.say span{font-size:34px}.say small{display:block;font-size:13px;color:#ea580c;font-weight:900}
+.agenda{display:flex;flex-direction:column;gap:10px;max-width:1100px}
+.agset{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#fff;border:1px solid #ece8ff;border-radius:16px;padding:10px 16px;margin-bottom:12px;font-weight:700;max-width:1100px}.agset input{font-family:'Fira Code';font-size:18px;padding:6px 10px;border:2px solid #ddd6fe;border-radius:10px}.agset span{color:#6b7280;font-size:14px;font-weight:600}.agset .btnp{margin:0}
+.ag{display:grid;grid-template-columns:200px 160px 1fr 90px;align-items:center;gap:14px;background:#fff;border:1px solid #ece8ff;border-radius:16px;padding:12px 16px;font-size:clamp(16px,1.5vw,20px);transition:.3s}
+.ag b{font-family:'Fira Code',Cairo;color:var(--p);font-size:.85em;white-space:nowrap}.ag em{font-style:normal;color:#6b7280;font-weight:700}
+.agbar{height:10px;background:#f3f0ff;border-radius:6px;overflow:hidden}.agbar i{display:block;height:100%;background:linear-gradient(90deg,var(--p),var(--t));border-radius:6px}
+.ag.now{border:2px solid var(--t);background:#ecfdf5;transform:scale(1.02);box-shadow:0 8px 20px rgba(0,194,168,.2)}.ag.done{opacity:.45}
+.clock{background:#f3f0ff;border-radius:12px;padding:5px 12px;cursor:pointer;font-size:14px;display:flex;gap:6px;align-items:center;white-space:nowrap;max-width:640px;overflow:hidden}
+.clock b{font-family:'Fira Code';color:var(--p)}.clock span{color:#4b5563;overflow:hidden;text-overflow:ellipsis}
+.clock.run{background:#ecfdf5}.clock.late{background:#fee2e2}.clock.late b{color:#dc2626}
+.brk{text-align:center;padding-top:30px}.brk .emo{font-size:110px;animation:float 3s ease-in-out infinite}
+.cd{font-family:'Fira Code',monospace;font-size:clamp(70px,12vw,150px);font-weight:700;color:var(--p);margin:10px 0}
+.qz{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px}
+.qq{background:#fff;border:1px solid #ece8ff;border-radius:18px;padding:16px;font-size:19px}
+.qo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.qo button{font-family:Cairo;font-size:17px;padding:9px;border-radius:12px;border:2px solid #ece8ff;background:#faf9ff;cursor:pointer;text-align:start}
+.qo button.ok{background:#dcfce7;border-color:#22c55e}.qo button.no{background:#fee2e2;border-color:#ef4444}
+.chk{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:10px;margin-bottom:10px}
+.chk label{background:#fff;border:1px solid #ece8ff;border-radius:14px;padding:12px 16px;font-size:19px;cursor:pointer;display:flex;gap:10px;align-items:center}
+.chk input{width:22px;height:22px;accent-color:var(--t)}
+
+.padd{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:14px}.padd input{padding:10px 16px;border:2px solid #ddd6fe;border-radius:12px;font-family:Cairo;font-size:17px;min-width:260px}
+.players{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+.pl{position:relative;background:#fff;border:3px solid #ece8ff;border-radius:20px;padding:10px 18px;text-align:center;min-width:140px;transition:.3s}.pl.on{border-color:var(--c);box-shadow:0 10px 26px rgba(30,27,75,.15);transform:scale(1.06)}
+.pl .ts{color:var(--c)!important;font-size:42px!important}.pl button{background:#f3f0ff;border:0;border-radius:10px;padding:3px 12px;margin:0 3px;font-weight:900;font-size:15px;cursor:pointer;font-family:Cairo}.pl .rm{position:absolute;top:4px;left:6px;background:none!important;padding:0!important;color:#9ca3af;font-size:13px!important}
+.teams{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center;max-width:1000px;margin:0 auto 18px}
+.team{background:#fff;border:3px solid #ece8ff;border-radius:24px;padding:14px;text-align:center;transition:.3s}
+.team.on{border-color:var(--p);box-shadow:0 10px 30px rgba(108,76,245,.25);transform:scale(1.04)}
+#tB.on{border-color:var(--t);box-shadow:0 10px 30px rgba(0,194,168,.25)}
+.tn{font-weight:900;font-size:22px;outline:0}.ts{font-size:56px;font-weight:900;color:var(--p);font-family:'Fira Code';line-height:1.2}#tB .ts{color:var(--t)}
+.team button{background:#f3f0ff;border:0;border-radius:10px;padding:4px 14px;margin:0 3px;font-weight:900;font-size:16px;cursor:pointer}
+.vs{text-align:center;font-weight:700;color:#6b7280}.vs b{color:var(--d);font-size:22px}
+.gq{max-width:1000px;margin:0 auto;background:#fff;border-radius:26px;padding:24px;border:1px solid #ece8ff;box-shadow:0 10px 30px rgba(30,27,75,.07);text-align:center}
+.gq .qn{color:var(--p);font-weight:900}.gq h3{font-size:clamp(22px,2.6vw,32px);margin:8px 0 18px;line-height:1.6}
+.gq .go{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.gq .go button{font-family:Cairo;font-size:clamp(17px,1.7vw,22px);font-weight:700;padding:14px;border-radius:16px;border:2px solid #ece8ff;background:#faf9ff;cursor:pointer;transition:.2s}
+.gq .go button:hover{background:#f3f0ff}.gq .go button.ok{background:#dcfce7;border-color:#22c55e}.gq .go button.no{background:#fee2e2;border-color:#ef4444}
+.gq .nx{margin-top:16px}
+.pts:has(.pt:nth-child(6)){gap:8px}.pts:has(.pt:nth-child(6)) .pt{padding:8px 16px;font-size:clamp(16px,1.35vw,20px)}
+.solw{text-align:center}.solb{font-size:22px;padding:18px 40px;margin-top:40px}
+.hw{display:grid;grid-template-columns:1.6fr 1fr;gap:20px}@media(max-width:1000px){.hw{grid-template-columns:1fr}}
+.hwside{display:flex;flex-direction:column;gap:14px}.hwside b{font-size:20px}
+.tip{position:fixed;top:66px;left:50%;transform:translateX(-50%);background:var(--d);color:#fff;padding:6px 16px;border-radius:10px;font-size:14px;z-index:50;opacity:0;transition:.3s;pointer-events:none}
+.tip.on{opacity:1}
+</style>
+</head>
+<body class="mode-pointer">
+<header>
+ <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" >
+ <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6C4CF5"/><stop offset="1" stop-color="#00C2A8"/></linearGradient></defs>
+ <rect x="20" y="20" width="360" height="360" rx="90" fill="url(#g)"/>
+ <rect x="44" y="44" width="312" height="312" rx="70" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="4"/>
+ <text x="200" y="205" text-anchor="middle" font-family="DejaVu Sans Mono" font-weight="bold" font-size="120" fill="#fff">&lt;/&gt;</text>
+ <text x="200" y="300" text-anchor="middle" font-family="Cairo" font-weight="800" font-size="62" fill="#fff">آدم تامر</text>
+</svg>
+
+ <div class="ttl"><small>المحاضرة 6</small>نموذج الصندوق Box Model</div>
+ <div class="sp"></div>
+ <div class="dots" id="dots"></div>
+ <div class="clock" id="clock" onclick="sessionToggle()" title="ساعة الحصة: اضغط للتشغيل/الإيقاف">⏱️ <span id="cl0">مرّ من الحصة</span> <b id="ct">0:00</b> <span id="ca">— اضغط هنا أو «ابدأ الحصة الآن» لتشغيل الساعة</span></div>
+ <div class="count" id="count"></div>
+</header>
+<main id="stage"></main>
+<div id="blank"></div>
+<canvas id="ink"></canvas>
+<div class="wm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" >
+ <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6C4CF5"/><stop offset="1" stop-color="#00C2A8"/></linearGradient></defs>
+ <rect x="20" y="20" width="360" height="360" rx="90" fill="url(#g)"/>
+ <rect x="44" y="44" width="312" height="312" rx="70" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="4"/>
+ <text x="200" y="205" text-anchor="middle" font-family="DejaVu Sans Mono" font-weight="bold" font-size="120" fill="#fff">&lt;/&gt;</text>
+ <text x="200" y="300" text-anchor="middle" font-family="Cairo" font-weight="800" font-size="62" fill="#fff">آدم تامر</text>
+</svg>
+</div>
+<div class="tip" id="tip"></div>
+<div class="tools" id="tools">
+ <button data-t="prev" title="السابق (→)">❯</button>
+ <button data-t="next" title="التالي (←)">❮</button>
+ <span class="sep"></span>
+ <button data-m="pointer" class="on" title="مؤشر (V)">🖱️</button>
+ <button data-m="pen" title="قلم (P)">✏️</button>
+ <button data-m="hl" title="تظليل (H)">🖍️</button>
+ <button data-m="eraser" title="ممحاة (E)">🧽</button>
+ <span class="sep"></span>
+ <button class="sw on" data-c="#6C4CF5" style="background:#6C4CF5"></button>
+ <button class="sw" data-c="#EF476F" style="background:#EF476F"></button>
+ <button class="sw" data-c="#00C2A8" style="background:#00C2A8"></button>
+ <button class="sw" data-c="#F59E0B" style="background:#F59E0B"></button>
+ <button class="sw" data-c="#1E1B4B" style="background:#1E1B4B"></button>
+ <span class="sep"></span>
+ <button class="sz" data-s="3">S</button>
+ <button class="sz on" data-s="6">M</button>
+ <button class="sz" data-s="12">L</button>
+ <span class="sep"></span>
+ <button data-t="undo" title="تراجع (Ctrl+Z)">↶</button>
+ <button data-t="clear" title="مسح (C)">🗑️</button>
+ <button data-t="board" title="لوحة بيضاء (B)">⬜</button>
+ <button data-t="full" title="ملء الشاشة (F)">⛶</button>
+</div>
+<script>
+const LEC = {"n": 6, "week": 3, "title": "نموذج الصندوق Box Model", "en": "The Box Model", "intro": "النهارده هنفهم إن كل حاجة في الصفحة عبارة عن صندوق، وهنتحكم في المسافات جوه الصندوق وبرّاه وفي البرواز بتاعه.", "objectives": ["ترسم الصندوق وتعرف طبقاته.", "تستخدم padding وborder وmargin.", "تفهم box-sizing: border-box.", "تفرّق بين block وinline وinline-block."], "analogy": "الصندوق زي الهدية: الهدية نفسها هي المحتوى، والورق اللي حواليها جوه العلبة هو padding، والعلبة الكرتون هي border، والمسافة بين علبتك وعلبة اللي جنبك على الرف هي margin.", "custom": {}, "sections": [{"h": "طبقات الصندوق", "points": ["Content: المحتوى نفسه، وليه عرض width وطول height.", "Padding: مسافة جوه، بين المحتوى والبرواز.", "Border: البرواز اللي حوالين الصندوق.", "Margin: مسافة برّه، بين الصندوق والصناديق اللي جنبه."], "note": "افتح F12 واختار أي عنصر، هتلاقي رسمة الصندوق بالألوان في تبويب Computed.", "code": "<style>\n  .box {\n    width: 200px;\n    padding: 20px;\n    border: 5px solid #6c4cf5;\n    margin: 30px;\n    background: #e9e4ff;\n  }\n<\/style>\n<div class=\"box\">أنا صندوق<\/div>\n<div class=\"box\">وأنا جاره<\/div>"}, {"h": "اختصارات وborder-box", "points": ["padding: 10px 20px يعني 10 فوق وتحت، و20 يمين وشمال.", "margin: 0 auto بيوسّط الصندوق في النص.", "border-radius بيدوّر الزوايا، و50% بيعمل دايرة.", "box-sizing: border-box بيخلي العرض اللي كتبته يشمل الحشو والبرواز، فالحسابات تبقى سهلة."], "note": "ابدأ أي مشروع بالسطر ده: * { box-sizing: border-box; }", "code": "<style>\n  * { box-sizing: border-box; }\n  .card { width: 250px; margin: 20px auto; padding: 20px;\n          border-radius: 16px; background: white;\n          box-shadow: 0 4px 14px rgba(0,0,0,.15); text-align:center; }\n  .avatar { width: 80px; height: 80px; border-radius: 50%; background: tomato; margin: 0 auto 10px; }\n<\/style>\n<div class=\"card\"><div class=\"avatar\"><\/div>بطاقة أنيقة<\/div>"}, {"h": "العنصر بياخد مكان قد إيه؟ (display)", "points": ["block: بياخد السطر كله، زي div وp وh1.", "inline: بياخد على قد الكلام اللي جواه بس، زي span وa، وما بيقبلش width.", "inline-block: بيقف جنب غيره في السطر، بس بيقبل width وheight.", "display: none بيخفي العنصر خالص."], "note": "مشاكل تصميم كتير سببها إنك نسيت العنصر block ولا inline.", "code": "<style>\n  span, .ib { background: gold; margin: 4px; }\n  .ib { display: inline-block; width: 90px; height: 40px; }\n<\/style>\n<div style=\"background:#cde\">div (block)<\/div>\n<span>span<\/span><span>inline<\/span>\n<div class=\"ib\">inline-block<\/div><div class=\"ib\">inline-block<\/div>"}], "practice": {"t": "كروت المهارات", "steps": ["حوّلوا كل مهارة في صفحتكم لكارت (div عليه class=\"card\").", "ادوا الكارت padding وborder وزوايا مدورة.", "ضيفوا ظل: box-shadow: 0 4px 14px rgba(0,0,0,.1).", "وسّطوا محتوى الصفحة: max-width: 800px وmargin: 0 auto.", "خلّوا الصورة الشخصية دايرية بـ border-radius: 50%."], "code": "<style>\n  * { box-sizing: border-box; }\n  body { font-family: Tahoma; background: #f7f5ff; }\n  .wrap { max-width: 600px; margin: 0 auto; text-align: center; }\n  .me { width: 110px; height: 110px; border-radius: 50%; }\n  .card { display: inline-block; width: 160px; padding: 18px; margin: 8px;\n          background: white; border: 2px solid #ddd6fe; border-radius: 16px;\n          box-shadow: 0 4px 14px rgba(0,0,0,.1); }\n<\/style>\n<div class=\"wrap\">\n  <img class=\"me\" src=\"https://picsum.photos/110\" alt=\"صورتي\">\n  <h2>مهاراتي<\/h2>\n  <div class=\"card\">🧱 HTML<\/div>\n  <div class=\"card\">🎨 CSS<\/div>\n  <div class=\"card\">⚡ JavaScript<\/div>\n<\/div>"}, "summary": ["من جوه لبرّه: Content، وبعده Padding، وبعده Border، وبعده Margin.", "border-box بيسهّل حساب العرض.", "block / inline / inline-block / none."], "say": ["افتحوا أي موقع، كل اللي شايفينه صناديق جوه صناديق.", "padding جوه العلبة، وmargin برّه العلبة، دي أهم جملة النهارده.", "border-box صاحبكم اللي هيريحكم من الحسابات."], "plan": [[15, "مراجعة المحاضرة اللي فاتت", "review", null], [35, "طبقات الصندوق (هنرسمه ونجرّبه)", "sec", [0]], [25, "اختصارات وborder-box", "sec", [1]], [10, "استراحة", "break", null], [30, "display: العنصر بياخد مكان قد إيه", "sec", [2]], [35, "تطبيق: كروت المهارات", "practice", null], [20, "الخلاصة واللعبة والواجب", "end", null]], "mcq": [{"q": "المسافة الداخلية بين المحتوى والحدود:", "o": ["margin", "padding", "border", "gap"], "a": 1}, {"q": "المسافة الخارجية بين الصندوق وجيرانه:", "o": ["padding", "margin", "outline", "space"], "a": 1}, {"q": "لتوسيط صندوق أفقيًا:", "o": ["margin: 0 auto", "padding: center", "align: middle", "float: center"], "a": 0}, {"q": "لصنع دائرة من مربع:", "o": ["border-radius: 50%", "circle: true", "shape: round", "radius: full"], "a": 0}, {"q": "أي عنصر inline افتراضيًا؟", "o": ["<div>", "<p>", "<span>", "<h1>"], "a": 2}, {"q": "الخاصية التي تخفي العنصر تمامًا:", "o": ["display: none", "color: none", "hidden: yes", "opacity: hide"], "a": 0}], "tf": [{"s": "border هو الإطار حول الصندوق.", "v": true}, {"s": "العناصر inline تقبل width وheight بشكل طبيعي.", "v": false}, {"s": "box-sizing: border-box يجعل العرض يشمل الحشوة والحدود.", "v": true}, {"s": "div عنصر block.", "v": true}, {"s": "padding مسافة خارج الحدود.", "v": false}], "hw": {"t": "كروت المهارات", "tasks": ["خلّي كل مهارة كارت بـ padding وborder.", "زوايا مدورة وظل box-shadow.", "وسّط الصفحة بـ max-width وmargin: 0 auto.", "خلّي صورتك دايرية."], "bonus": "خلّي الكارت يكبر شوية ولون البرواز يتغير لما الماوس يعدّي عليه.", "send": "سكرين شوت + ملف CSS"}, "prev": {"title": "مقدمة CSS: المحددات والألوان والخطوط", "summary": ["المحدد { الخاصية: القيمة; }", "الوسم p، والـ class ‎.x، والـ id ‎#x.", "color وbackground وfont-size وtext-align."], "mcq": [{"q": "الخاصية التي تغيّر لون النص:", "o": ["background", "color", "font-color", "text-color"], "a": 1}, {"q": "أي قيمة تمثل لونًا بصيغة HEX؟", "o": ["rgb(0,0,0)", "#ff6600", "red", "hsl(0,0%,0%)"], "a": 1}, {"q": "لتغيير الشكل عند مرور الفأرة نستخدم:", "o": [":click", ":hover", ":mouse", ":over"], "a": 1}], "hw": "لوّن صفحتك الشخصية"}};
+const PG = (()=>{ const PGS = {
+1: {after:0, html:`<h2 class="st">🌐 رحلة الطلب: من المتصفح إلى الخادم</h2>
+<div class="flow"><div class="node" id="nB"><div class="ic">💻</div><b>المتصفح</b><small>Client</small></div>
+<div class="wire"><div class="pkt" id="pkt">✉️</div></div>
+<div class="node" id="nD"><div class="ic">📒</div><b>DNS</b><small>دليل العناوين</small></div>
+<div class="wire"><div class="pkt" id="pkt2" style="opacity:0">📦</div></div>
+<div class="node" id="nS"><div class="ic">🗄️</div><b>الخادم</b><small>Server</small></div></div>
+<div class="flowmsg" id="fmsg">اضغط «ابدأ الرحلة» لنشاهد ما يحدث خطوة بخطوة</div>
+<div style="text-align:center"><button class="btnp" id="fgo">▶ ابدأ الرحلة</button></div>`,
+init(){const m=document.getElementById("fmsg"),p=document.getElementById("pkt"),p2=document.getElementById("pkt2");
+ const steps=[["1) تكتب google.com في المتصفح ✍️",()=>{p.style.right="0";p.textContent="✉️";p2.style.opacity=0;}],
+ ["2) المتصفح يسأل DNS: ما رقم هذا الموقع؟",()=>{p.style.right="85%";}],
+ ["3) DNS يرد: رقمه 142.250.x.x 📒",()=>{p.textContent="🔢";p.style.right="0";}],
+ ["4) الطلب يذهب إلى الخادم 🚀",()=>{p2.style.opacity=1;p2.textContent="✉️";p2.style.right="85%";}],
+ ["5) الخادم يرد بملفات HTML وCSS وJS 📦",()=>{p2.textContent="📦";p2.style.right="0";}],
+ ["6) المتصفح يرسم الصفحة أمامك 🎉",()=>{p2.style.opacity=0;document.getElementById("nB").style.borderColor="#00C2A8";}]];
+ let i=0;document.getElementById("fgo").onclick=e=>{if(i>=steps.length){i=0;document.getElementById("nB").style.borderColor="";}m.textContent=steps[i][0];steps[i][1]();i++;e.target.textContent=i>=steps.length?"↺ أعد الرحلة":"⏭ الخطوة التالية";};}},
+6: {after:0, html:`<h2 class="st">🎛️ جرّب الصندوق بنفسك</h2><div class="pg"><div class="ctrl">
+<label>margin (الهامش الخارجي): <span id="vm">20</span>px</label><input type="range" id="rm" min="0" max="60" value="20">
+<label>border (الإطار): <span id="vb">6</span>px</label><input type="range" id="rb" min="0" max="30" value="6">
+<label>padding (الحشوة): <span id="vp">20</span>px</label><input type="range" id="rp" min="0" max="60" value="20">
+<div class="out" id="bmo"></div>
+<div class="lgnd"><span style="background:#FDE68A">margin</span><span style="background:#FDBA74">border</span><span style="background:#A7F3D0">padding</span><span style="background:#93C5FD">content</span></div></div>
+<div class="view"><div class="bm-m" id="bm"><div class="bm-b" id="bb"><div class="bm-p" id="bp"><div class="bm-c">المحتوى</div></div></div></div></div></div>`,
+init(){const u=()=>{const m=rm.value,b=rb.value,p=rp.value;vm.textContent=m;vb.textContent=b;vp.textContent=p;bm.style.padding=m+"px";bb.style.borderWidth=b+"px";bp.style.padding=p+"px";
+ bmo.textContent=`.box {\n  margin: ${m}px;\n  border: ${b}px solid orange;\n  padding: ${p}px;\n}\n/* total width = ${180+2*p+2*b+2*m}px */`;};
+ ["rm","rb","rp"].forEach(id=>document.getElementById(id).oninput=u);u();}},
+7: {after:1, html:`<h2 class="st">🎛️ ملعب Flexbox</h2><div class="pg"><div class="ctrl">
+<label>flex-direction</label><select id="fd"><option>row</option><option>row-reverse</option><option>column</option></select>
+<label>justify-content</label><select id="fj"><option>flex-start</option><option>center</option><option>flex-end</option><option>space-between</option><option>space-around</option><option>space-evenly</option></select>
+<label>align-items</label><select id="fa"><option>stretch</option><option>flex-start</option><option>center</option><option>flex-end</option></select>
+<label>gap: <span id="fgv">10</span>px</label><input type="range" id="fg" min="0" max="50" value="10">
+<div class="out" id="fo"></div></div>
+<div class="view" style="padding:10px"><div class="fx" id="fx" style="display:flex"><div>1</div><div>2</div><div>3</div><div>4</div></div></div></div>`,
+init(){const u=()=>{fx.style.flexDirection=fd.value;fx.style.justifyContent=fj.value;fx.style.alignItems=fa.value;fx.style.gap=fg.value+"px";fgv.textContent=fg.value;
+ fo.textContent=`.container {\n  display: flex;\n  flex-direction: ${fd.value};\n  justify-content: ${fj.value};\n  align-items: ${fa.value};\n  gap: ${fg.value}px;\n}`;};
+ ["fd","fj","fa","fg"].forEach(id=>document.getElementById(id).oninput=u);u();}},
+8: {after:0, html:`<h2 class="st">🎛️ ملعب Grid</h2><div class="pg"><div class="ctrl">
+<label>عدد الأعمدة: <span id="gcv">3</span></label><input type="range" id="gc" min="1" max="6" value="3">
+<label>gap: <span id="ggv">10</span>px</label><input type="range" id="gg" min="0" max="40" value="10">
+<label>العنصر الأول يمتد عبر: <span id="gsv">1</span> عمود</label><input type="range" id="gs" min="1" max="3" value="1">
+<div class="out" id="go2"></div></div>
+<div class="view" style="padding:10px"><div class="fx" id="gx" style="display:grid;height:auto">${Array.from({length:9},(_, i)=>`<div style="text-align:center">${i+1}</div>`).join("")}</div></div></div>`,
+init(){const u=()=>{gx.style.gridTemplateColumns=`repeat(${gc.value}, 1fr)`;gx.style.gap=gg.value+"px";gx.children[0].style.gridColumn=`span ${Math.min(gs.value,gc.value)}`;
+ gcv.textContent=gc.value;ggv.textContent=gg.value;gsv.textContent=gs.value;
+ go2.textContent=`.grid {\n  display: grid;\n  grid-template-columns: repeat(${gc.value}, 1fr);\n  gap: ${gg.value}px;\n}\n.item-1 { grid-column: span ${gs.value}; }`;};
+ ["gc","gg","gs"].forEach(id=>document.getElementById(id).oninput=u);u();}}
+};
+
+ return PGS[6]||null; })();
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+// تلوين الأكواد داخل النص: أي شيء بين < > أو بالإنجليزية
+const fmt = s => s.split(/(<\/?[A-Za-z!][^>\u0600-\u06FF]*>|[A-Za-z#.:@!_\/\(\)\[\]\{\}\$=0-9"'%*+;,`&|\-]+(?:\s+[A-Za-z#.:@!_\/\(\)\[\]\{\}\$=0-9"'%*+;,`&|\-]+)*)/).map((x,i)=>{ if(!(i%2 && /[A-Za-z<&|=]/.test(x))) return esc(x); const m=x.match(/^(.*?)([.:,]?)$/); return `<code>${esc(m[1])}</code>${m[2]}`; }).join("");
+const LOGO = document.querySelector("header svg").outerHTML;
+const slides = [];
+const say = (t) => t ? `<div class="say step"><span>💡</span><div><small>💬</small>«${fmt(t)}»</div></div>` : "";
+const ide=(code,hidden)=>`<div class="ide-wrap" ${hidden?'style="display:none"':''}><div class="ide"><div class="bar"><i></i><i></i><i></i><span>index.html</span><button class="run">▶ شغّل الكود</button></div><textarea spellcheck="false">${esc(code)}</textarea></div><div class="prev"><div class="lbl">👁️ النتيجة في المتصفح</div><iframe sandbox="allow-scripts allow-modals allow-forms"></iframe></div></div>`;
+// الغلاف
+slides.push(`<div class="cover">${LOGO}<span class="tag">الأسبوع ${LEC.week} • المحاضرة ${LEC.n} من 16</span><h1 class="big">${LEC.title}</h1><div class="en">${LEC.en}</div><p style="font-size:21px;max-width:900px;line-height:1.9;color:#4b5563">${fmt(LEC.intro)}</p><div class="by">إعداد<br><b>آدم تامر</b></div></div>`);
+// خطة الحصة
+let acc=0;
+const agenda=LEC.plan.map(([m,a])=>{const s=acc;acc+=m;return `<div class="ag" data-s="${s}" data-e="${acc}"><b class="agt" data-s="${s}" data-e="${acc}"></b><div class="agbar"><i style="width:${m/1.8}%"></i></div><span>${a}</span><em>${m} دقيقة</em></div>`;}).join("");
+slides.push(`<h2 class="st">🗓️ خطة الحصة النهارده <small style="font-size:18px;color:#6b7280;font-weight:600">(${acc} دقيقة تقريبًا)</small></h2><div class="agset">🕖 الحصة بتبدأ الساعة: <input type="time" id="stime"> <button class="btnp" onclick="sessionToggle(true,true)">▶ ابدأ الحصة الآن</button><span>الوقت اللي جنب كل نشاط = الساعة اللي المفروض تبدأه فيها</span></div><div class="agenda">${agenda}</div>`);
+const secSlide=(i)=>{const s=LEC.sections[i];
+  const extra = i===1 ? say(LEC.say[1]) : "";
+  const pts=`<div class="pts">${s.points.map(p=>`<div class="pt step">${fmt(p)}</div>`).join("")}</div>${s.note?`<div class="note step">${fmt(s.note)}</div>`:""}${extra}`;
+  const head=`<h2 class="st"><span class="num">${LEC.n}.${i+1}</span>${s.h}</h2>`;
+  slides.push(s.code?head+`<div class="split"><div>${pts}</div>${ide(s.code)}</div>`:head+`<div style="max-width:1050px">${pts}</div>`);
+  if(PG && PG.after===i) slides.push(PG.html);};
+let introDone=false;
+const introSlides=()=>{if(introDone)return;introDone=true;
+  slides.push(`<h2 class="st">🎯 هنتعلم إيه النهارده؟</h2><div class="grid2">${LEC.objectives.map((o,i)=>`<div class="card obj step"><b>${i+1}</b><div>${fmt(o)}</div></div>`).join("")}</div>`);
+  slides.push(`<div class="analogy"><div class="emo">🧠</div><h2 class="st" style="justify-content:center">نبدأ بتشبيه بسيط</h2><p>${fmt(LEC.analogy)}</p>${say(LEC.say[0])}</div>`);};
+const customSlide=k=>{const c=LEC.custom[k];slides.push(`<h2 class="st">${c.t}</h2><div class="pts" style="max-width:1100px">${c.points.map((p,i)=>`<div class="pt step ex"><b>${String(i+1).padStart(2,"0")}</b><span>${fmt(p)}</span></div>`).join("")}</div>`);};
+const brkMin=(LEC.plan.find(p=>p[2]==="break")||[10])[0];
+LEC.plan.forEach(([m,title,kind,arg])=>{
+  if(kind==="custom"){customSlide(arg);return;}
+  if(kind==="review"){const P=LEC.prev;
+    slides.push(`<h2 class="st">🔁 فاكرين المحاضرة اللي فاتت؟ <small style="font-size:18px;color:#6b7280">(${P.title})</small></h2><div class="sum">${P.summary.map(x=>`<div class="card step">${fmt(x)}</div>`).join("")}</div>
+    <div class="card step" style="border-top:6px solid var(--amber);max-width:1100px"><b>📝 الواجب اللي فات: ${P.hw}</b><br>مين عمل الواجب؟ 🙋 إيه أصعب حاجة قابلتكم فيه؟ اكتبوا في الشات، ومين يحب يعرض شغله في دقيقتين؟</div>`);
+    slides.push(`<h2 class="st">⚡ أسئلة سريعة على اللي فات <small style="font-size:17px;color:#6b7280;font-weight:600">فكّروا وجاوبوا في الشات 💬</small></h2><div class="qz">${P.mcq.map((q,k)=>`<div class="qq step"><b>${k+1}) ${fmt(q.q)}</b><div class="qo">${q.o.map((o,j)=>`<button data-ok="${j===q.a?1:0}">${"أبجد"[j]}) ${fmt(o)}</button>`).join("")}</div></div>`).join("")}</div>`);
+    return;}
+  if(kind==="sec"||kind==="sec+practice"){introSlides();arg.forEach(secSlide);if(kind==="sec+practice")kind="practice";else return;}
+  if(kind==="break"){slides.push(`<div class="brk"><div class="emo">☕</div><h1 class="big">استراحة ${m} دقايق</h1><div class="cd" id="cd">${String(m).padStart(2,"0")}:00</div><button class="btnp" onclick="startBreak(${m})">▶ ابدأ العد التنازلي</button><p style="color:#6b7280;margin-top:14px">قوموا اشربوا حاجة وارجعوا بنشاط 💪</p></div>`);return;}
+  if(kind==="practice"){const P=LEC.practice;
+    slides.push(`<h2 class="st">🛠️ تطبيق عملي: ${P.t}</h2><div class="split"><div><div class="pts">${P.steps.map((t,i)=>`<div class="pt step ex"><b>${String(i+1).padStart(2,"0")}</b><span>${fmt(t)}</span></div>`).join("")}</div>
+    <div class="note step">⏱️ اشتغلوا لوحدكم ${Math.round(m*0.6)} دقيقة، واللي يخلص يكتب «خلصت ✅» في الشات. وبعدها هنشوف الحل سوا سطر سطر.</div></div>
+    <div class="solw"><button class="btnp solb" onclick="this.style.display='none';this.nextElementSibling.style.display='block';this.nextElementSibling.querySelector('.run').click()">👀 اظهر الحل</button>${ide(P.code,true)}</div></div>`);return;}
+  if(kind==="end"){
+    slides.push(`<h2 class="st">📌 الخلاصة</h2><div class="sum">${LEC.summary.map(s=>`<div class="card step">${fmt(s)}</div>`).join("")}</div><h2 class="st step" style="font-size:26px">✅ دلوقتي إنت تقدر:</h2><div class="chk step">${LEC.objectives.map(o=>`<label><input type="checkbox"><span>${fmt(o)}</span></label>`).join("")}</div>${say(LEC.say[2])}`);
+    slides.push(`<h2 class="st">❓ اختبر نفسك <small style="font-size:17px;color:#6b7280;font-weight:600">دوس على الإجابة</small></h2><div class="qz">${LEC.mcq.slice(0,4).map((q,k)=>`<div class="qq step"><b>${k+1}) ${fmt(q.q)}</b><div class="qo">${q.o.map((o,j)=>`<button data-ok="${j===q.a?1:0}">${"أبجد"[j]}) ${fmt(o)}</button>`).join("")}</div></div>`).join("")}</div>`);
+    slides.push(`<div class="tg"><h2 class="st" style="justify-content:center">🎮 تحدي الحصة</h2>
+<div class="padd"><input id="pname" placeholder="اكتب اسم الطالب أو الفريق" maxlength="20"><button class="btnp" id="padd">➕ إضافة</button><span style="color:#6b7280">طالب واحد أو أكتر، والدور بيلف بالترتيب</span></div>
+<div class="players" id="players"></div><div class="gq" id="gq"></div></div>`);
+    slides.push(`<h2 class="st">📝 واجب المحاضرة: ${LEC.hw.t}</h2><div class="hw"><div class="pts">${LEC.hw.tasks.map((t,i)=>`<div class="pt step ex"><b>0${i+1}</b><span>${fmt(t)}</span></div>`).join("")}</div>
+<div class="hwside"><div class="card step" style="border-top:6px solid var(--amber)"><b>⭐ تحدي زيادة (اختياري)</b><br>${fmt(LEC.hw.bonus)}</div><div class="card step" style="border-top:6px solid var(--t)"><b>📤 هتبعتوا إيه؟</b><br>${fmt(LEC.hw.send)}</div><div class="card step" style="border-top:6px solid var(--p)"><b>⏰ آخر ميعاد</b><br>قبل الحصة الجاية، والعبوا لعبة الواجب على «ساحة التحديات» 🎮</div></div></div>`);
+    slides.push(`<div class="cover">${LOGO}<h1 class="big">شكرًا ليكم 💜</h1><p style="font-size:22px;color:#4b5563;margin-top:10px">${LEC.n<16?`نتقابل في المحاضرة ${LEC.n+1} 🚀`:"بالتوفيق في مشواركم، وده لسه أول الطريق!"}</p><p class="by">إعداد <b>آدم تامر</b></p></div>`);}
+});
+const stage = $("#stage"), dots = $("#dots");
+slides.forEach((h,i)=>{const d=document.createElement("section");d.className="slide";d.innerHTML=h;stage.append(d);const dot=document.createElement("i");dot.onclick=()=>go(i);dots.append(dot);});
+const S = [...document.querySelectorAll(".slide")];
+S.forEach(sl=>sl.querySelectorAll(".ide-wrap").forEach(w=>{
+  const ta=w.querySelector("textarea"), fr=w.querySelector("iframe");
+  const run=()=>{fr.srcdoc=`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet"><style>body{font-family:Cairo,Tahoma;padding:12px;margin:0}</style></head><body>${ta.value}</body></html>`;};
+  w.querySelector(".run").onclick=run; fr.srcdoc=`<html dir="rtl"><body style="font-family:Cairo,Tahoma;color:#9ca3af;display:flex;align-items:center;justify-content:center;height:90vh;margin:0;font-size:18px">اضغط «▶ شغّل الكود» علشان تشوف النتيجة 👆</body></html>`;
+  ta.addEventListener("keydown",e=>{e.stopPropagation(); if(e.key==="Tab"){e.preventDefault();const s=ta.selectionStart;ta.setRangeText("  ",s,ta.selectionEnd,"end");} if(e.key==="Enter"&&e.ctrlKey){run();}});
+  ta.style.height=Math.max(230,ta.value.split("\n").length*26+40)+"px";
+}));
+let cur=0;
+function go(i){
+  saveInk(); if(i<0||i>=S.length) return;
+  S[cur].classList.remove("on"); cur=i; S[cur].classList.add("on");
+  [...dots.children].forEach((d,k)=>d.classList.toggle("on",k===cur));
+  $("#count").textContent=`${cur+1} / ${S.length}`; loadInk();
+  try{history.replaceState(null,"","#"+(cur+1))}catch(e){}
+}
+function next(){const h=S[cur].querySelector(".step:not(.shown)"); if(h){h.classList.add("shown");return;} if(cur<S.length-1){go(cur+1);}}
+function prev(){ if(cur>0){go(cur-1);S[cur].querySelectorAll(".step").forEach(x=>x.classList.add("shown"));} }
+
+// ===== الرسم =====
+const cv=$("#ink"), ctx=cv.getContext("2d"); let mode="pointer", color="#6C4CF5", size=6, drawing=false, last=null;
+const store={}, hist={};
+const key=()=>document.body.classList.contains("board")?"board":cur;
+function fit(){const img=cv.width?cv.toDataURL():null;cv.width=innerWidth;cv.height=innerHeight-58;if(img){const im=new Image();im.onload=()=>ctx.drawImage(im,0,0);im.src=img;}}
+function saveInk(){store[key()]=cv.toDataURL();}
+function loadInk(){ctx.clearRect(0,0,cv.width,cv.height);const d=store[key()];if(d){const im=new Image();im.onload=()=>ctx.drawImage(im,0,0);im.src=d;}}
+function pushHist(){const k=key();(hist[k]=hist[k]||[]).push(cv.toDataURL());if(hist[k].length>30)hist[k].shift();}
+cv.addEventListener("pointerdown",e=>{if(mode==="pointer")return;pushHist();drawing=true;last=[e.offsetX,e.offsetY];cv.setPointerCapture(e.pointerId);dot(e);});
+cv.addEventListener("pointermove",e=>{if(!drawing)return;const p=[e.offsetX,e.offsetY];stroke(last,p,e.pressure);last=p;});
+cv.addEventListener("pointerup",()=>{drawing=false;});
+function setBrush(pr){ctx.lineCap="round";ctx.lineJoin="round";
+  if(mode==="eraser"){ctx.globalCompositeOperation="destination-out";ctx.globalAlpha=1;ctx.lineWidth=size*5;}
+  else if(mode==="hl"){ctx.globalCompositeOperation="source-over";ctx.globalAlpha=.28;ctx.strokeStyle=color;ctx.lineWidth=size*4;ctx.lineCap="butt";}
+  else{ctx.globalCompositeOperation="source-over";ctx.globalAlpha=1;ctx.strokeStyle=color;ctx.lineWidth=size*(pr&&pr!==.5?pr*1.6:1);}}
+function stroke(a,b,pr){setBrush(pr);ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);ctx.stroke();}
+function dot(e){stroke([e.offsetX,e.offsetY],[e.offsetX+.1,e.offsetY+.1],e.pressure);}
+function undo(){const h=hist[key()];if(!h||!h.length)return;const im=new Image();im.onload=()=>{ctx.globalCompositeOperation="source-over";ctx.globalAlpha=1;ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(im,0,0);};im.src=h.pop();}
+function clearInk(){pushHist();ctx.clearRect(0,0,cv.width,cv.height);}
+function setMode(m){mode=m;document.body.classList.toggle("mode-pointer",m==="pointer");document.querySelectorAll("[data-m]").forEach(b=>b.classList.toggle("on",b.dataset.m===m));
+  cv.style.cursor=m==="eraser"?"cell":m==="pointer"?"default":"crosshair";tip({pointer:"🖱️ وضع المؤشر",pen:"✏️ القلم",hl:"🖍️ قلم التظليل",eraser:"🧽 الممحاة"}[m]);}
+function board(){saveInk();document.body.classList.toggle("board");loadInk();if(document.body.classList.contains("board")&&mode==="pointer")setMode("pen");tip(document.body.classList.contains("board")?"⬜ لوحة بيضاء — اضغط B للرجوع":"↩️ رجعنا للشرائح");}
+function full(){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{});}
+let tt;function tip(t){const e=$("#tip");e.textContent=t;e.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>e.classList.remove("on"),1300);}
+document.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+document.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{color=b.dataset.c;document.querySelectorAll("[data-c]").forEach(x=>x.classList.toggle("on",x===b));if(mode==="pointer"||mode==="eraser")setMode("pen");});
+document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{size=+b.dataset.s;document.querySelectorAll("[data-s]").forEach(x=>x.classList.toggle("on",x===b));});
+const T={next,prev,undo,clear:clearInk,board,full};
+document.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>T[b.dataset.t]());
+addEventListener("keydown",e=>{
+  if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
+  const k=e.key.toLowerCase();
+  if(e.ctrlKey&&k==="z"){e.preventDefault();return undo();}
+  if(["arrowleft"," ","pagedown"].includes(k)){e.preventDefault();next();}
+  else if(["arrowright","pageup","backspace"].includes(k)){e.preventDefault();prev();}
+  else if(k==="p")setMode("pen");else if(k==="h")setMode("hl");else if(k==="e")setMode("eraser");else if(k==="v"||k==="escape")setMode("pointer");
+  else if(k==="c")clearInk();else if(k==="b")board();else if(k==="f")full();
+});
+
+
+// ===== تحدي الحصة =====
+const GQ=[...LEC.mcq.map(q=>({q:q.q,o:q.o,a:q.a})),...LEC.tf.map(t=>({q:t.s,o:["✔️ صح","❌ خطأ"],a:t.v?0:1}))];
+const PCOL=["#6C4CF5","#00C2A8","#F59E0B","#EF476F","#3B82F6","#8B5CF6","#10B981","#F97316"];
+let PL=[],gi=0,turn=0,answered=false;
+function drawPlayers(){const box=document.getElementById("players");
+  box.innerHTML=PL.map((p,i)=>`<div class="pl ${i===turn&&gi<GQ.length?"on":""}" style="--c:${PCOL[i%8]}"><button class="rm" onclick="rmP(${i})" title="حذف">✕</button><div class="tn">${esc(p.n)}</div><div class="ts">${p.s}</div><div><button onclick="pt(${i},1)">+1</button><button onclick="pt(${i},-1)">−1</button></div></div>`).join("")
+   || `<div style="color:#9ca3af;padding:10px">لم تتم إضافة لاعبين بعد</div>`;}
+function addP(){const i=document.getElementById("pname");const n=i.value.trim()||("الطالب "+(PL.length+1));PL.push({n,s:0});i.value="";i.focus();drawPlayers();if(PL.length===1)gShow();}
+window.rmP=i=>{PL.splice(i,1);if(turn>=PL.length)turn=0;drawPlayers();gShow();};
+window.pt=(i,d)=>{PL[i].s=Math.max(0,PL[i].s+d);drawPlayers();};
+document.getElementById("padd").onclick=addP;
+document.getElementById("pname").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addP();}});
+function gShow(){const box=document.getElementById("gq");answered=false;
+  if(!PL.length){box.innerHTML=`<h3>👆 أضف اسم طالب واحد على الأقل لتبدأ اللعبة</h3>`;return;}
+  if(gi>=GQ.length){const mx=Math.max(...PL.map(p=>p.s)),w=PL.filter(p=>p.s===mx);
+    box.innerHTML=`<h3 style="font-size:38px">${PL.length===1?`🎉 أحسنت يا ${esc(PL[0].n)}! نتيجتك ${PL[0].s} من ${GQ.length}`:(w.length>1?"تعادل! 🤝 "+w.map(p=>esc(p.n)).join(" و"):"🏆 الفائز: "+esc(w[0].n))}</h3><button class="btnp" onclick="gi=0;turn=0;PL.forEach(p=>p.s=0);drawPlayers();gShow()">↺ العب مرة أخرى</button>`;drawPlayers();return;}
+  const q=GQ[gi],who=PL[turn];
+  box.innerHTML=`<div class="qn">السؤال ${gi+1} من ${GQ.length}${PL.length>1?` — الدور على: <span style="color:${PCOL[turn%8]}">${esc(who.n)}</span>`:""}</div><h3>${fmt(q.q)}</h3><div class="go">${q.o.map((o,j)=>`<button data-j="${j}">${q.o.length>2?"أبجد"[j]+") ":""}${fmt(o)}</button>`).join("")}</div><div class="nx"><button class="btnp" id="gnext">التالي ⬅</button></div>`;
+  box.querySelectorAll(".go button").forEach(b=>b.onclick=()=>{if(answered)return;answered=true;const ok=+b.dataset.j===q.a;
+    b.classList.add(ok?"ok":"no");box.querySelector(`[data-j="${q.a}"]`).classList.add("ok");if(ok){PL[turn].s++;drawPlayers();tip(`✅ صح! +1 لـ ${who.n}`);}else tip("❌ إجابة خاطئة");});
+  document.getElementById("gnext").onclick=()=>{gi++;turn=(turn+1)%PL.length;drawPlayers();gShow();};}
+drawPlayers();gShow();
+// ===== ساعة الحصة =====
+let sesStart=null,sesAcc=0,sesIv=null;
+function sessionToggle(forceOn,reset){const c=$("#clock");
+  if(reset){sesAcc=0;sesStart=null;clearInterval(sesIv);const n=new Date();document.getElementById("stime").value=`${String(n.getHours()).padStart(2,"0")}:${String(n.getMinutes()).padStart(2,"0")}`;agTimes();}
+  if(sesStart&&!forceOn){sesAcc+=Date.now()-sesStart;sesStart=null;clearInterval(sesIv);c.classList.remove("run");tip("⏸️ الساعة واقفة — اضغط عليها تاني للتشغيل");sesTick();return;}
+  if(sesStart)return; sesStart=Date.now();c.classList.add("run");sesIv=setInterval(sesTick,1000);sesTick();tip("⏱️ الساعة شغالة — بتعدّ الوقت اللي مرّ من الحصة");}
+function sesTick(){const ms=sesAcc+(sesStart?Date.now()-sesStart:0),m=ms/60000,sec=Math.floor(ms/1000);
+  $("#ct").textContent=`${Math.floor(sec/3600)?Math.floor(sec/3600)+":":""}${String(Math.floor(sec%3600/60)).padStart(Math.floor(sec/3600)?2:1,"0")}:${String(sec%60).padStart(2,"0")}`;
+  let cur=null;document.querySelectorAll(".ag").forEach(a=>{const s=+a.dataset.s,e=+a.dataset.e;a.classList.toggle("now",m>=s&&m<e);a.classList.toggle("done",m>=e);if(m>=s&&m<e)cur=a;});
+  const total=LEC.plan.reduce((x,p)=>x+p[0],0);
+  $("#ca").textContent=!sesStart&&!ms?"— اضغط هنا أو «ابدأ الحصة الآن» لتشغيل الساعة":(!sesStart?"⏸️ واقفة":(cur?"• الآن: "+cur.querySelector("span").textContent+` (باقي ${Math.ceil(+cur.dataset.e-m)} د)`:(m>=total?"• خلص وقت الحصة ⏰":"")));
+  $("#clock").classList.toggle("late",m>=total);}
+function agTimes(){const v=(document.getElementById("stime")||{}).value||"19:00";const [h,mi]=v.split(":").map(Number);const base=h*60+mi;
+  const f=x=>{x=(x+1440)%1440;let H=Math.floor(x/60),M=x%60,ap=H>=12?"م":"ص";H=H%12||12;return `${H}:${String(M).padStart(2,"0")} ${ap}`;};
+  document.querySelectorAll(".agt").forEach(b=>b.textContent=`${f(base+ +b.dataset.s)} ← ${f(base+ +b.dataset.e)}`);}
+(()=>{const n=new Date(),r=Math.round((n.getHours()*60+n.getMinutes())/5)*5;const el=document.getElementById("stime");el.value=`${String(Math.floor(r/60)%24).padStart(2,"0")}:${String(r%60).padStart(2,"0")}`;el.oninput=agTimes;el.onkeydown=e=>e.stopPropagation();agTimes();})();
+let brIv=null;
+function startBreak(min){clearInterval(brIv);const end=Date.now()+min*60000,el=document.getElementById("cd");
+  brIv=setInterval(()=>{const l=Math.max(0,end-Date.now());el.textContent=`${String(Math.floor(l/60000)).padStart(2,"0")}:${String(Math.floor(l%60000/1000)).padStart(2,"0")}`;
+  if(l<=0){clearInterval(brIv);el.textContent="يلا نكمل! 🚀";}},250);}
+document.querySelectorAll(".qo button").forEach(b=>b.onclick=()=>{b.classList.add(b.dataset.ok==="1"?"ok":"no");if(b.dataset.ok!=="1"){const r=b.parentNode.querySelector('[data-ok="1"]');setTimeout(()=>r.classList.add("ok"),500);}});
+addEventListener("resize",fit);fit();
+if(PG&&PG.init)PG.init();
+const start=parseInt(location.hash.slice(1))-1;go(start>=0&&start<S.length?start:0);
+setTimeout(()=>tip("استخدم الأسهم للتنقل • P قلم • E ممحاة • B لوحة بيضاء"),600);
+</script>
+</body>
+</html>
